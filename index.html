@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="th" ng-app="taskApp" ng-strict-di>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Task Review Demo</title><link rel="stylesheet" href="src/styles.css"></head>
+<body ng-controller="TaskController as vm">
+<main><header><p>ANGULARJS • AI CODE REVIEW SAMPLE</p><h1>รายการงานของทีม</h1><p>จัดการงานง่าย ๆ เพื่อทดลองตรวจคุณภาพโค้ดด้วยเอไอ</p></header>
+<form ng-submit="vm.add()"><label for="title">งานใหม่</label><div class="entry"><input id="title" ng-model="vm.title" maxlength="120" placeholder="เช่น ตรวจสอบโค้ดก่อนส่งงาน" required><button type="submit">เพิ่มงาน</button></div></form>
+<p class="error" role="alert" ng-if="vm.error" ng-bind="vm.error"></p>
+<div class="summary"><span>ทั้งหมด {{vm.tasks.length}} งาน · เสร็จแล้ว {{vm.completed()}} งาน</span><label>แสดง <select ng-model="vm.filter"><option value="all">ทั้งหมด</option><option value="open">ยังไม่เสร็จ</option><option value="done">เสร็จแล้ว</option></select></label></div>
+<ul><li ng-repeat="task in vm.tasks | filter:vm.matches track by task.id"><label><input type="checkbox" ng-model="task.done" ng-change="vm.toggle(task)"><span ng-class="{done:task.done}" ng-bind="task.title"></span></label><button class="delete" type="button" ng-click="vm.remove(task.id)" aria-label="ลบงาน {{task.title}}">ลบ</button></li></ul>
+<p ng-if="!vm.tasks.length">ยังไม่มีงาน เริ่มเพิ่มงานแรกได้เลย</p>
+<footer>ข้อมูลเก็บเฉพาะในเบราว์เซอร์นี้</footer></main>
+<script src="node_modules/angular/angular.js"></script><script src="src/app.js"></script><script src="src/task.service.js"></script><script src="src/task.controller.js"></script></body></html>

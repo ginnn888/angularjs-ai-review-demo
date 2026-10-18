@@ -11,7 +11,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Only reads PR code through APIs. Never executes the application.
+      - name: Generate AngularJS tests and review with the original Action
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@f34c1cb3ddbee708e608eccee6128341a18d9299
+        with:
+          project_type: angularjs
+          phase: generate
+          test_source: generated
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github_token: ${{ github.token }}
+          gemini_model: ${{ vars.GEMINI_MODEL || 'gemini-3.1-flash-lite' }}
+          ai_timeout_seconds: '90'
+      - name: Save generated test source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aq-generated-tests
+          path: .aq-generated/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
   checks:
+    needs: generate
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -29,12 +59,20 @@ jobs:
       - id: install
         continue-on-error: true
         run: npm ci --ignore-scripts
+      - name: Load the action-generated test suite
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: aq-generated-tests
+          path: .aq-generated
       - name: Run tests using the original Automated Quality Gate
         if: always()
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@63362d19f946e75fdcd9d9754a5140d7dad05484
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@f34c1cb3ddbee708e608eccee6128341a18d9299
         with:
           project_type: angularjs
           phase: checks
+          test_source: generated
           install_status: ${{ steps.install.outcome }}
       - name: Save Quality Gate results
         if: always()
@@ -59,16 +97,21 @@ jobs:
       - uses: actions/download-artifact@v4
         continue-on-error: true
         with:
+          name: aq-generated-tests
+          path: .aq-generated
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
           name: quality-gate-results
           path: .
       - name: Review and comment using the original Automated Quality Gate
         if: always()
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@63362d19f946e75fdcd9d9754a5140d7dad05484
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@f34c1cb3ddbee708e608eccee6128341a18d9299
         with:
           project_type: angularjs
           phase: report
+          test_source: generated
           report_only: 'true'
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           github_token: ${{ github.token }}
           gemini_model: ${{ vars.GEMINI_MODEL || 'gemini-3.1-flash-lite' }}
           ai_timeout_seconds: '90'

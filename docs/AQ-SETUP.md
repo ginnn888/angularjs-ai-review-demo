@@ -21,3 +21,6 @@ AI errors and failed tests remain visible. report_only: true means findings do
 not enforce merge rules. Coverage and SonarCloud integration remain deferred.
 Never place the Gemini key or a write token in the checks job. The workflow uses
 pull_request_target with isolated jobs to allow PR comments, including forks.
+
+The report job publishes three linked comments: Test Results, Security Audit and AI Code Review. Reruns update these same comments; detailed test logs and source scope are collapsible.
+

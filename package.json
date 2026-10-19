@@ -4,15 +4,12 @@
   "private": true,
   "description": "AngularJS task board for AI code review practice",
   "scripts": {
-    "start": "http-server . -a 127.0.0.1 -p 8080 -c-1",
-    "test": "node --test",
-    "check": "node --check src/app.js && node --check src/task.service.js && node --check src/task.controller.js"
+    "start": "http-server . -a 127.0.0.1 -p 8080 -c-1"
   },
   "dependencies": {
     "angular": "1.8.3"
   },
   "devDependencies": {
-    "http-server": "14.1.1",
-    "jsdom": "26.1.0"
+    "http-server": "14.1.1"
   }
 }

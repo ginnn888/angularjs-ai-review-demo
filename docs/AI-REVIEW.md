@@ -2,7 +2,7 @@
 
 ## Prompt ตัวอย่าง
 
-ตรวจโค้ด AngularJS ใน src/ และ index.html พร้อม package.json และ test/ วิเคราะห์ correctness, security, maintainability, accessibility และ test coverage รายงานเฉพาะประเด็นที่มีหลักฐาน พร้อมไฟล์ บรรทัด ระดับความรุนแรง วิธีทำให้เกิดปัญหา และแนวทางแก้ แยกข้อจำกัดจาก dependency ที่หมดอายุออกจากบั๊กของแอป ห้ามถือว่าการทดสอบผ่านหมายถึงไม่มีบั๊ก
+ตรวจโค้ด AngularJS ใน src/ และ index.html พร้อม package.json  วิเคราะห์ correctness, security, maintainability, accessibility และ test coverage รายงานเฉพาะประเด็นที่มีหลักฐาน พร้อมไฟล์ บรรทัด ระดับความรุนแรง วิธีทำให้เกิดปัญหา และแนวทางแก้ แยกข้อจำกัดจาก dependency ที่หมดอายุออกจากบั๊กของแอป ห้ามถือว่าการทดสอบผ่านหมายถึงไม่มีบั๊ก
 
 ## จุดตรวจ
 

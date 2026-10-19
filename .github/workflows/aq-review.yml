@@ -20,7 +20,7 @@ jobs:
     steps:
       # Only reads PR code through APIs. Never executes the application.
       - name: Generate AngularJS tests and review with the original Action
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@00f49df9b523317d1966b2c59c7bbddc29e60194
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@971b31492c474d0c6d3760b0606e6dd0a64a6c34
         with:
           project_type: angularjs
           phase: generate
@@ -68,7 +68,7 @@ jobs:
           path: .aq-generated
       - name: Run tests using the original Automated Quality Gate
         if: always()
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@00f49df9b523317d1966b2c59c7bbddc29e60194
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@971b31492c474d0c6d3760b0606e6dd0a64a6c34
         with:
           project_type: angularjs
           phase: checks
@@ -106,7 +106,7 @@ jobs:
           path: .
       - name: Review and comment using the original Automated Quality Gate
         if: always()
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@00f49df9b523317d1966b2c59c7bbddc29e60194
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@971b31492c474d0c6d3760b0606e6dd0a64a6c34
         with:
           project_type: angularjs
           phase: report

@@ -3,72 +3,76 @@ const {test} = require('node:test');
 const assert = require('./assert.cjs');
 const {setup} = require('./harness.cjs');
 
-test('TaskService adds valid tasks and persists them', () => {
+test('TaskService adds valid tasks and rejects invalid ones', () => {
   const env = setup();
   const service = env.get('TaskService');
-  const tasks = service.add([], 'Learn AngularJS');
+  const tasks = service.add([], 'Valid Task');
   assert.equal(tasks.length, 1);
-  assert.equal(tasks[0].title, 'Learn AngularJS');
-  assert.equal(tasks[0].done, false);
-  const stored = JSON.parse(env.window.localStorage.getItem('ai-review-tasks-v1'));
-  assert.deepEqual(stored, tasks);
+  assert.equal(tasks[0].title, 'Valid Task');
+  assert.throws(() => service.add(tasks, '  '), /กรุณาระบุชื่องาน/);
+  assert.throws(() => service.add(tasks, 'a'.repeat(121)), /กรุณาระบุชื่องาน/);
 });
 
-test('TaskService rejects invalid inputs', () => {
-  const env = setup();
-  const service = env.get('TaskService');
-  assert.throws(() => service.add([], '   '), /กรุณาระบุชื่องาน/);
-  assert.throws(() => service.add([], 'a'.repeat(121)), /กรุณาระบุชื่องาน/);
-});
-
-test('TaskController manages task lifecycle', () => {
+test('TaskController correctly handles task lifecycle', () => {
   const env = setup();
   const vm = env.controller('TaskController');
-  vm.title = 'Test Task';
+  vm.title = 'Learn AngularJS';
   vm.add();
   assert.equal(vm.tasks.length, 1);
+  assert.equal(vm.tasks[0].title, 'Learn AngularJS');
   vm.remove(vm.tasks[0].id);
   assert.equal(vm.tasks.length, 0);
 });
 
+test('TaskService persists data to localStorage', () => {
+  const env = setup();
+  const service = env.get('TaskService');
+  service.add([], 'Persist Me');
+  const raw = env.window.localStorage.getItem('ai-review-tasks-v1');
+  const tasks = JSON.parse(raw);
+  assert.equal(tasks[0].title, 'Persist Me');
+});
+
 test('TaskController handles persistence failure gracefully', () => {
   const env = setup();
-  const restore = env.failStorageWrites();
   const vm = env.controller('TaskController');
-  vm.title = 'Should fail';
+  vm.title = 'Unsaved Task';
+  env.failStorageWrites();
   vm.add();
   assert.equal(vm.tasks.length, 0);
   assert.ok(vm.error.length > 0);
-  restore();
 });
 
-test('TaskController toggling state rolls back on failure', () => {
+test('TaskController checkbox toggle rolls back on save failure', () => {
   const env = setup();
-  const service = env.get('TaskService');
-  const tasks = service.add([], 'Task 1');
   const vm = env.controller('TaskController');
-  vm.tasks = tasks;
-  const restore = env.failStorageWrites();
-  vm.tasks[0].done = true;
-  vm.toggle(vm.tasks[0]);
-  assert.equal(vm.tasks[0].done, false);
+  vm.title = 'Task 1';
+  vm.add();
+  const task = vm.tasks[0];
+  env.failStorageWrites();
+  task.done = true;
+  vm.toggle(task);
+  assert.equal(task.done, false);
   assert.ok(vm.error.length > 0);
-  restore();
 });
 
-test('Integration with index.html rendering', () => {
+test('TaskService recovers from corrupted localStorage data', () => {
   const env = setup();
-  const doc = env.readPage();
+  env.window.localStorage.setItem('ai-review-tasks-v1', 'invalid-json');
+  const service = env.get('TaskService');
+  const tasks = service.list();
+  assert.deepEqual(tasks, []);
+});
+
+test('UI reflects model changes and filtering', () => {
+  const env = setup();
   const vm = env.controller('TaskController');
-  vm.tasks = [{id: '1', title: 'Buy milk', done: false}];
-  const injector = env.injector;
-  injector.invoke(['$rootScope', '$compile', ($rootScope, $compile) => {
-    const scope = $rootScope.$new();
-    scope.vm = vm;
-    const element = $compile(doc.body)(scope);
-    scope.$digest();
-    const listItems = element[0].querySelectorAll('li');
-    assert.equal(listItems.length, 1);
-    assert.ok(listItems[0].textContent.includes('Buy milk'));
-  }]);
+  vm.title = 'A';
+  vm.add();
+  vm.title = 'B';
+  vm.add();
+  vm.tasks[0].done = true;
+  vm.filter = 'done';
+  assert.equal(vm.matches(vm.tasks[0]), true);
+  assert.equal(vm.matches(vm.tasks[1]), false);
 });

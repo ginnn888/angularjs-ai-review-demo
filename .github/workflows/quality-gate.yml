@@ -21,7 +21,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Generate tests and review without executing PR code
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@01ca23df58505148ccceb59fc4e826bf1f8bbd56
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@v1.2.0
         with:
           project_type: angularjs
           test_source: generated
@@ -65,7 +65,7 @@ jobs:
           name: aq-generated-tests
           path: .aq-generated
       - name: Run tests and measure coverage without AI keys or write permissions
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@01ca23df58505148ccceb59fc4e826bf1f8bbd56
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@v1.2.0
         if: always()
         with:
           project_type: angularjs
@@ -112,8 +112,8 @@ jobs:
           args: |-
             -Dproject.settings=/dev/null
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.projectKey=NonnaritRammaneekultawat-6609650459
-            -Dsonar.organization=NonnaritRammaneekultawat-6609650459_Automated-Quality-Gate
+            -Dsonar.projectKey=NonnaritRammaneekultawat-6609650459_Automated-Quality-Gate
+            -Dsonar.organization=NonnaritRammaneekultawat-6609650459
             -Dsonar.sources=src
             -Dsonar.exclusions=src/**/*.test.js,src/**/*.spec.js,src/**/*.test.cjs,src/**/*.spec.cjs
             -Dsonar.javascript.lcov.reportPaths=coverage/quality-gate/lcov.info
@@ -164,7 +164,7 @@ jobs:
           name: quality-gate-sonar
           path: .aq-sonar
       - name: Save tests to PR and publish results
-        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@01ca23df58505148ccceb59fc4e826bf1f8bbd56
+        uses: NonnaritRammaneekultawat-6609650459/test-github-marketplace@v1.2.0
         with:
           project_type: angularjs
           test_source: generated
@@ -175,5 +175,5 @@ jobs:
           persist_tests: "true"
           report_only: "false"
           sonar_token: ${{ secrets.SONAR_TOKEN }}
-          sonar_project_key: NonnaritRammaneekultawat-6609650459
+          sonar_project_key: NonnaritRammaneekultawat-6609650459_Automated-Quality-Gate
           sonar_scan_status: ${{ needs.sonar.result }}

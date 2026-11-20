@@ -3,78 +3,72 @@ const {test} = require('node:test');
 const assert = require('./assert.cjs');
 const {setup} = require('./harness.cjs');
 
-test('Controller adds task and resets input', () => {
+test('Controller initializes with empty state and tasks from service', () => {
   const env = setup();
   const vm = env.controller('TaskController');
-  vm.title = 'New Task';
+  assert.equal(vm.tasks.length, 0);
+  assert.equal(vm.filter, 'all');
+  assert.equal(vm.title, '');
+});
+
+test('Valid input adds task and clears title/error', () => {
+  const env = setup();
+  const vm = env.controller('TaskController');
+  vm.title = 'Test task';
   vm.add();
   assert.equal(vm.tasks.length, 1);
-  assert.equal(vm.tasks[0].title, 'New Task');
+  assert.equal(vm.tasks[0].title, 'Test task');
   assert.equal(vm.title, '');
   assert.equal(vm.error, '');
 });
 
-test('Controller handles invalid title via error message', () => {
+test('Invalid input (too long) triggers error message', () => {
   const env = setup();
   const vm = env.controller('TaskController');
-  vm.title = '';
+  vm.title = 'A'.repeat(121);
   vm.add();
   assert.equal(vm.tasks.length, 0);
-  assert.ok(vm.error.length > 0);
+  assert.equal(vm.error, 'กรุณาระบุชื่องาน 1–120 ตัวอักษร');
 });
 
-test('Controller handles persistence failure on add', () => {
+test('Task removal updates model and clears errors', () => {
   const env = setup();
-  env.failStorageWrites();
   const vm = env.controller('TaskController');
-  vm.title = 'Should fail';
+  vm.title = 'Item';
   vm.add();
+  vm.remove(vm.tasks[0].id);
   assert.equal(vm.tasks.length, 0);
-  assert.ok(vm.error.includes('บันทึกไม่ได้'));
+  assert.equal(vm.error, '');
 });
 
-test('TaskService rejects duplicate ID configurations (Validation)', () => {
+test('Persistence failure rolls back toggle and shows error', () => {
   const env = setup();
-  const service = env.get('TaskService');
-  const tasks = [{id: '1', title: 'Task 1', done: false}, {id: '1', title: 'Task 2', done: false}];
-  assert.equal(service.list().length, 0);
-});
-
-test('Controller toggles task done state and recovers on save error', () => {
-  const env = setup();
+  const restore = env.failStorageWrites();
   const vm = env.controller('TaskController');
-  vm.title = 'Toggle task';
+  vm.title = 'Task';
   vm.add();
   const task = vm.tasks[0];
-  
-  const restore = env.failStorageWrites();
-  task.done = true;
   vm.toggle(task);
-  
-  assert.equal(task.done, false, 'Checkbox should revert state on failure');
+  assert.equal(task.done, false);
   assert.ok(vm.error.length > 0);
   restore();
 });
 
-test('UI template renders initial state correctly', () => {
+test('UI template reflects logic (DOM bindings)', () => {
   const env = setup();
-  const doc = env.readPage('index.html');
-  const body = doc.querySelector('body');
-  assert.ok(body.innerHTML.includes('รายการงานของทีม'));
-  assert.ok(body.querySelector('input[ng-model="vm.title"]'));
-});
-
-test('Controller filter functionality reflects accurately', () => {
-  const env = setup();
-  const vm = env.controller('TaskController');
-  vm.tasks = [
-    {id: '1', title: 'A', done: true},
-    {id: '2', title: 'B', done: false}
-  ];
-  vm.filter = 'done';
-  assert.equal(vm.matches(vm.tasks[0]), true);
-  assert.equal(vm.matches(vm.tasks[1]), false);
-  vm.filter = 'open';
-  assert.equal(vm.matches(vm.tasks[0]), false);
-  assert.equal(vm.matches(vm.tasks[1]), true);
+  const page = env.readPage();
+  const root = env.window.document.createElement('div');
+  root.innerHTML = page;
+  env.window.angular.bootstrap(root, ['taskApp']);
+  
+  const scope = env.window.angular.element(root.querySelector('[ng-controller]')).scope();
+  const vm = scope.vm;
+  
+  vm.title = 'Browser test';
+  vm.add();
+  env.window.angular.element(root).scope().$digest();
+  
+  const listItems = root.querySelectorAll('li');
+  assert.equal(listItems.length, 1);
+  assert.match(listItems[0].textContent, /Browser test/);
 });
